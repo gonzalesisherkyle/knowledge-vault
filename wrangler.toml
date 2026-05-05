@@ -1,0 +1,10 @@
+name = "knowledge-vault"
+pages_build_output_dir = "dist"
+
+[build]
+command = "npm run build"
+
+[vars]
+# Replace this with your actual production API URL
+VITE_API_BASE_URL = "http://localhost:4000/api"
+VITE_API_WITH_CREDENTIALS = "false"
