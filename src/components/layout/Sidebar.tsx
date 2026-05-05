@@ -8,12 +8,8 @@ import {
   ChevronDown,
   Check,
   LayoutDashboard,
-  MessageSquare,
-  Search,
   Plus,
   Archive,
-  Library,
-  Database,
   MoreVertical,
   Pencil,
   Pin,
@@ -157,7 +153,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Button
             variant="default"
             size="sm"
-            className="w-full justify-center gap-2 bg-primary text-primary-foreground text-[11px] font-bold h-9 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all uppercase tracking-wider"
+            className={cn(
+              "w-full justify-center gap-2 bg-primary text-primary-foreground text-[11px] font-bold h-9 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all uppercase tracking-wider",
+              collapsed ? "px-0" : "px-4"
+            )}
             onClick={() => {
               onNewResearch?.();
               onSectionChange?.('chat');
@@ -170,7 +169,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-center gap-2 border-border/50 bg-secondary/20 text-muted-foreground text-[10px] font-bold h-8 hover:bg-secondary/40 transition-all uppercase tracking-wider"
+            className={cn(
+              "w-full justify-center gap-2 border-border/50 bg-secondary/20 text-muted-foreground text-[10px] font-bold h-8 hover:bg-secondary/40 transition-all uppercase tracking-wider",
+              collapsed ? "px-0" : "px-4"
+            )}
             onClick={() => {
               if (onNewResearch) (onNewResearch as any)(true); // Pass true for temporary
               onSectionChange?.('chat');
@@ -186,19 +188,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {mainNav.map((item) => {
             const active = 'section' in item && item.section === activeSection;
             return (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => {
-                if ('section' in item && item.section) onSectionChange?.(item.section);
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[13px] font-semibold transition-all group relative",
-                active 
-                  ? "bg-primary/10 text-primary shadow-sm" 
-                  : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-              )}
-            >
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  if ('section' in item && item.section) onSectionChange?.(item.section);
+                }}
+                className={cn(
+                  "w-full flex items-center rounded-lg text-[13px] font-semibold transition-all group relative",
+                  collapsed ? "justify-center py-2.5 px-0" : "gap-3 px-4 py-2.5",
+                  active 
+                    ? "bg-primary/10 text-primary shadow-sm" 
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+              >
               <item.icon className={cn("h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110", active ? "text-primary" : "")} />
               {!collapsed && <span>{item.label}</span>}
               {active && !collapsed && (
@@ -416,7 +419,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => setIsConfigOpen(true)}
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[13px] font-semibold text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all group"
+              "w-full flex items-center rounded-lg text-[13px] font-semibold text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-all group",
+              collapsed ? "justify-center py-2.5 px-0" : "gap-3 px-4 py-2.5"
             )}
           >
             <Settings className="h-4 w-4 shrink-0 transition-transform group-hover:rotate-45 duration-500" />
