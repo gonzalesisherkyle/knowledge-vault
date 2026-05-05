@@ -32,6 +32,7 @@ export interface ChatSession {
   id: string;
   notebookId: string;
   title: string;
+  isPinned: boolean;
   lastMessageAt: string | null;
   createdAt: string;
   updatedAt: string;

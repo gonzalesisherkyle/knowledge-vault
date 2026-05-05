@@ -7,11 +7,11 @@ import {
   Book,
   ChevronDown,
   Check,
-  Plus,
-  Archive,
   LayoutDashboard,
   MessageSquare,
   Search,
+  Plus,
+  Archive,
   Library,
   Database,
   MoreVertical,
@@ -38,7 +38,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { SystemConfigDialog } from './SystemConfigDialog';
 
 interface SidebarProps {
@@ -79,7 +82,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [newNotebookTitle, setNewNotebookTitle] = useState('');
   const [newNotebookDesc, setNewNotebookDesc] = useState('');
-  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [sessionToRename, setSessionToRename] = useState<ChatSession | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
 
   const handleCreateNotebook = async () => {
@@ -207,102 +211,204 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {!collapsed && sessions.length > 0 && (
           <div className="flex-1 flex flex-col min-h-0 mt-8 px-3">
             <div className="px-4 mb-4 flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50">Recent History</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50">History</span>
               <Archive className="h-3 w-3 text-muted-foreground/30" />
             </div>
             <ScrollArea className="flex-1 -mx-3 px-3">
-              <div className="space-y-0.5 pb-6">
+              <div className="space-y-4 pb-6">
                 {(activeSection === 'chat' && !activeSessionId) && (
                   <div className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[12px] bg-primary/5 text-primary font-bold border border-primary/20 mb-2 animate-pulse">
                     <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(20,184,166,0.4)]" />
                     <span className="truncate italic">{isTemporary ? 'Temporary Chat' : 'New Chat'}</span>
                   </div>
                 )}
-                {sessions.map(session => (
-                  <div
-                    key={session.id}
-                    className={cn(
-                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] transition-all text-left truncate group relative",
-                      activeSessionId === session.id 
-                        ? "bg-muted/80 text-foreground font-bold border border-border/50" 
-                        : "text-muted-foreground hover:bg-muted/40 hover:text-foreground font-medium"
-                    )}
-                  >
-                    <button
-                      onClick={() => {
-                        onSessionSelect(session.id);
-                        onSectionChange?.('chat');
-                      }}
-                      className="flex-1 flex items-center gap-2.5 truncate"
-                    >
-                      <div className={cn(
-                        "h-1.5 w-1.5 rounded-full shrink-0 transition-all", 
-                        activeSessionId === session.id ? "bg-primary scale-125 shadow-[0_0_8px_rgba(20,184,166,0.4)]" : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50",
-                        session.isPinned && "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]"
-                      )} />
-                      {editingSessionId === session.id ? (
-                        <input
-                          autoFocus
-                          className="bg-transparent border-none outline-none w-full p-0 text-[12px] font-bold text-foreground"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onBlur={() => {
-                            if (editingTitle.trim() && editingTitle !== session.title) {
-                              onSessionRename(session.id, editingTitle);
-                            }
-                            setEditingSessionId(null);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              if (editingTitle.trim() && editingTitle !== session.title) {
-                                onSessionRename(session.id, editingTitle);
-                              }
-                              setEditingSessionId(null);
-                            }
-                            if (e.key === 'Escape') setEditingSessionId(null);
-                          }}
-                        />
-                      ) : (
-                        <span className="truncate flex items-center gap-1.5">
-                          {session.title}
-                          {session.isPinned && <Pin className="h-2.5 w-2.5 text-amber-400 rotate-45" />}
-                        </span>
-                      )}
-                    </button>
 
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
-                            <MoreVertical className="h-3.5 w-3.5" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem onClick={() => {
-                            setEditingSessionId(session.id);
-                            setEditingTitle(session.title);
-                          }} className="gap-2 text-[11px] font-bold">
-                            <Pencil className="h-3.5 w-3.5" /> Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onSessionPin(session.id, !session.isPinned)} className="gap-2 text-[11px] font-bold">
-                            {session.isPinned ? <><PinOff className="h-3.5 w-3.5" /> Unpin</> : <><Pin className="h-3.5 w-3.5" /> Pin</>}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => onSessionDelete(session.id)}
-                            className="gap-2 text-[11px] font-bold text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {sessions.some(s => s.isPinned) && (
+                  <div className="space-y-0.5">
+                    <div className="px-4 py-1.5 flex items-center gap-2 text-[10px] font-bold text-amber-500/80 uppercase tracking-widest">
+                      <Pin className="h-2.5 w-2.5" /> Pinned
                     </div>
+                    {sessions.filter(s => s.isPinned).map(session => (
+                      <div
+                        key={session.id}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] transition-all text-left truncate group relative",
+                          activeSessionId === session.id 
+                            ? "bg-amber-500/10 text-amber-200 font-bold border border-amber-500/20" 
+                            : "text-muted-foreground hover:bg-amber-500/5 hover:text-amber-100 font-medium"
+                        )}
+                      >
+                        <button
+                          onClick={() => {
+                            onSessionSelect(session.id);
+                            onSectionChange?.('chat');
+                          }}
+                          className="flex-1 flex items-center gap-2.5 truncate"
+                        >
+                          <div className={cn(
+                            "h-1.5 w-1.5 rounded-full shrink-0 transition-all bg-amber-400", 
+                            activeSessionId === session.id ? "scale-125 shadow-[0_0_8px_rgba(251,191,36,0.6)]" : "opacity-60"
+                          )} />
+                          <span className="truncate font-bold tracking-tight">
+                            {session.title}
+                          </span>
+                        </button>
+
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
+                                <MoreVertical className="h-3.5 w-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-40">
+                              <DropdownMenuItem onClick={() => {
+                                setSessionToRename(session);
+                                setEditingTitle(session.title);
+                                setIsRenameModalOpen(true);
+                              }} className="gap-2 text-[11px] font-bold">
+                                <Pencil className="h-3.5 w-3.5" /> Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => onSessionPin(session.id, !session.isPinned)} className="gap-2 text-[11px] font-bold">
+                                <PinOff className="h-3.5 w-3.5" /> Unpin
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => onSessionDelete(session.id)}
+                                className="gap-2 text-[11px] font-bold text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                <div className="space-y-0.5">
+                  {sessions.some(s => s.isPinned) && sessions.some(s => !s.isPinned) && (
+                    <div className="px-4 py-1.5 flex items-center gap-2 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">
+                      Recent
+                    </div>
+                  )}
+                  {sessions.filter(s => !s.isPinned).map(session => (
+                    <div
+                      key={session.id}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] transition-all text-left truncate group relative",
+                        activeSessionId === session.id 
+                          ? "bg-muted/80 text-foreground font-bold border border-border/50" 
+                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground font-medium"
+                      )}
+                    >
+                      <button
+                        onClick={() => {
+                          onSessionSelect(session.id);
+                          onSectionChange?.('chat');
+                        }}
+                        className="flex-1 flex items-center gap-2.5 truncate"
+                      >
+                        <div className={cn(
+                          "h-1.5 w-1.5 rounded-full shrink-0 transition-all", 
+                          activeSessionId === session.id ? "bg-primary scale-125 shadow-[0_0_8px_rgba(20,184,166,0.4)]" : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50"
+                        )} />
+                        <span className="truncate">
+                          {session.title}
+                        </span>
+                      </button>
+
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={() => {
+                              setSessionToRename(session);
+                              setEditingTitle(session.title);
+                              setIsRenameModalOpen(true);
+                            }} className="gap-2 text-[11px] font-bold">
+                              <Pencil className="h-3.5 w-3.5" /> Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSessionPin(session.id, !session.isPinned)} className="gap-2 text-[11px] font-bold">
+                              <Pin className="h-3.5 w-3.5" /> Pin
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => onSessionDelete(session.id)}
+                              className="gap-2 text-[11px] font-bold text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </ScrollArea>
           </div>
         )}
+
+        {/* Rename Session Modal */}
+        <Dialog open={isRenameModalOpen} onOpenChange={setIsRenameModalOpen}>
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="h-4 w-4 text-primary" />
+                Rename Chat
+              </DialogTitle>
+              <DialogDescription>
+                Enter a new name for this research session.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="space-y-2">
+                <Label htmlFor="chat-title" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  New Title
+                </Label>
+                <Input
+                  id="chat-title"
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  placeholder="Enter chat title..."
+                  className="bg-muted/30 border-border/50 focus:border-primary/50"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && editingTitle.trim()) {
+                      if (sessionToRename && editingTitle !== sessionToRename.title) {
+                        onSessionRename(sessionToRename.id, editingTitle);
+                      }
+                      setIsRenameModalOpen(false);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setIsRenameModalOpen(false)} className="text-xs font-bold uppercase tracking-wider">
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  if (sessionToRename && editingTitle.trim() && editingTitle !== sessionToRename.title) {
+                    onSessionRename(sessionToRename.id, editingTitle);
+                  }
+                  setIsRenameModalOpen(false);
+                }}
+                disabled={!editingTitle.trim()}
+                className="text-xs font-bold uppercase tracking-wider px-6"
+              >
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {(!sessions.length || collapsed) && <div className="flex-1" />}
 
