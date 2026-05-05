@@ -6,13 +6,12 @@ import {
   User, 
   Menu, 
   PlusCircle, 
-  MessageSquare, 
   FileText,
   Book,
   ChevronDown,
   Check,
   SearchIcon,
-  Bell
+  LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from '@/components/ui/sheet';
@@ -33,8 +32,8 @@ import { ModeToggle } from '@/components/mode-toggle';
 
 interface AppShellProps {
   children: React.ReactNode;
-  activeSection?: 'chat' | 'documents';
-  onSectionChange?: (section: 'chat' | 'documents') => void;
+  activeSection?: 'overview' | 'chat' | 'documents';
+  onSectionChange?: (section: 'overview' | 'chat' | 'documents') => void;
   onNewResearch?: () => void;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
@@ -44,12 +43,16 @@ interface AppShellProps {
   onNotebookCreate: (title: string, description?: string) => Promise<any>;
   sessions: ChatSession[];
   activeSessionId: string | null;
+  isTemporary?: boolean;
   onSessionSelect: (id: string) => void;
+  onSessionDelete: (id: string) => void;
+  onSessionRename: (id: string, title: string) => void;
+  onSessionPin: (id: string, isPinned: boolean) => void;
 }
 
 export const AppShell: React.FC<AppShellProps> = ({
   children,
-  activeSection = 'chat',
+  activeSection = 'overview',
   onSectionChange,
   onNewResearch,
   searchValue = '',
@@ -60,13 +63,17 @@ export const AppShell: React.FC<AppShellProps> = ({
   onNotebookCreate,
   sessions,
   activeSessionId,
-  onSessionSelect
+  isTemporary = false,
+  onSessionSelect,
+  onSessionDelete,
+  onSessionRename,
+  onSessionPin
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const { user, logout } = useAuth();
 
-  const handleMobileNav = (section: 'chat' | 'documents') => {
+  const handleMobileNav = (section: 'overview' | 'chat' | 'documents') => {
     onSectionChange?.(section);
     setIsMobileMenuOpen(false);
   };
@@ -89,7 +96,11 @@ export const AppShell: React.FC<AppShellProps> = ({
         onNotebookCreate={onNotebookCreate}
         sessions={sessions}
         activeSessionId={activeSessionId}
+        isTemporary={isTemporary}
         onSessionSelect={onSessionSelect}
+        onSessionDelete={onSessionDelete}
+        onSessionRename={onSessionRename}
+        onSessionPin={onSessionPin}
       />
       
       <main className="flex-1 flex flex-col min-w-0 bg-background relative">
@@ -148,12 +159,12 @@ export const AppShell: React.FC<AppShellProps> = ({
                       variant="ghost" 
                       className={cn(
                         "w-full justify-start gap-3 px-3 h-10 text-[13px] font-semibold transition-all",
-                        activeSection === 'chat' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                        activeSection === 'overview' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
                       )}
-                      onClick={() => handleMobileNav('chat')}
+                      onClick={() => handleMobileNav('overview')}
                     >
-                      <MessageSquare className="h-4 w-4" />
-                      Research Workspace
+                      <LayoutDashboard className="h-4 w-4" />
+                      Overview
                     </Button>
                     <Button 
                       variant="ghost" 
@@ -223,10 +234,6 @@ export const AppShell: React.FC<AppShellProps> = ({
             
             <div className="flex items-center gap-2 border-l border-border/50 pl-3">
               <ModeToggle />
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground relative">
-                <Bell className="h-4 w-4" />
-                <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-background" />
-              </Button>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

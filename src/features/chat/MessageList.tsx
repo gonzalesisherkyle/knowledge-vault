@@ -16,7 +16,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) 
 
   return (
     <div className="space-y-12 pb-12">
-      {messages.map((message) => (
+      {messages.map((message) => message.role === 'assistant' && !message.content ? null : (
         <div 
           key={message.id} 
           className={cn(
@@ -85,7 +85,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) 
         </div>
       ))}
       
-      {isTyping && messages[messages.length - 1]?.role === 'user' && (
+      {isTyping && (messages[messages.length - 1]?.role === 'user' || !messages[messages.length - 1]?.content) && (
         <div className="flex flex-col gap-3 animate-in fade-in duration-500 items-start">
           <div className="flex items-center gap-2 px-2">
             <Sparkles className="h-3.5 w-3.5 text-primary mr-1 animate-pulse" />
@@ -99,7 +99,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isTyping }) 
               <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
               <div className="h-1.5 w-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
-            <span className="text-xs text-muted-foreground/60 font-bold uppercase tracking-widest ml-2">Reading Documents...</span>
+            <span className="text-xs text-muted-foreground/60 font-bold uppercase tracking-widest ml-2">Synthesizing...</span>
           </div>
         </div>
       )}

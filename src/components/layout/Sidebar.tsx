@@ -9,7 +9,16 @@ import {
   Check,
   Plus,
   Archive,
-  LayoutDashboard
+  LayoutDashboard,
+  MessageSquare,
+  Search,
+  Library,
+  Database,
+  MoreVertical,
+  Pencil,
+  Pin,
+  PinOff,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,8 +42,8 @@ import {
 import { SystemConfigDialog } from './SystemConfigDialog';
 
 interface SidebarProps {
-  activeSection: 'chat' | 'documents';
-  onSectionChange?: (section: 'chat' | 'documents') => void;
+  activeSection: 'overview' | 'chat' | 'documents';
+  onSectionChange?: (section: 'overview' | 'chat' | 'documents') => void;
   onNewResearch?: () => void;
   notebooks: Notebook[];
   activeNotebook: Notebook | null;
@@ -42,25 +51,36 @@ interface SidebarProps {
   onNotebookCreate: (title: string, description?: string) => Promise<any>;
   sessions: ChatSession[];
   activeSessionId: string | null;
+  isTemporary: boolean;
   onSessionSelect: (id: string) => void;
+  onSessionDelete: (id: string) => void;
+  onSessionRename: (id: string, title: string) => void;
+  onSessionPin: (id: string, isPinned: boolean) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   activeSection, 
   onSectionChange, 
+  onNewResearch,
   notebooks,
   activeNotebook,
   onNotebookSelect,
   onNotebookCreate,
   sessions,
   activeSessionId,
-  onSessionSelect
+  isTemporary,
+  onSessionSelect,
+  onSessionDelete,
+  onSessionRename,
+  onSessionPin
 }) => {
   const [collapsed, setCollapsed] = React.useState(false);
   const [isCreateNotebookOpen, setIsCreateNotebookOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [newNotebookTitle, setNewNotebookTitle] = useState('');
   const [newNotebookDesc, setNewNotebookDesc] = useState('');
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
   const handleCreateNotebook = async () => {
     if (!newNotebookTitle.trim()) return;
@@ -71,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const mainNav = [
-    { icon: LayoutDashboard, label: 'Overview', section: 'chat' as const },
+    { icon: LayoutDashboard, label: 'Overview', section: 'overview' as const },
     { icon: FileText, label: 'Knowledge Base', section: 'documents' as const },
   ];
 
@@ -129,6 +149,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
+        <div className="px-4 py-4 space-y-2">
+          <Button
+            variant="default"
+            size="sm"
+            className="w-full justify-center gap-2 bg-primary text-primary-foreground text-[11px] font-bold h-9 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all uppercase tracking-wider"
+            onClick={() => {
+              onNewResearch?.();
+              onSectionChange?.('chat');
+            }}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {!collapsed && <span>New Chat</span>}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-center gap-2 border-border/50 bg-secondary/20 text-muted-foreground text-[10px] font-bold h-8 hover:bg-secondary/40 transition-all uppercase tracking-wider"
+            onClick={() => {
+              if (onNewResearch) (onNewResearch as any)(true); // Pass true for temporary
+              onSectionChange?.('chat');
+            }}
+          >
+            <Archive className="h-3 w-3" />
+            {!collapsed && <span>Temporary Chat</span>}
+          </Button>
+        </div>
+
 
         <nav className="px-3 space-y-1">
           {mainNav.map((item) => {
@@ -164,23 +212,92 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <ScrollArea className="flex-1 -mx-3 px-3">
               <div className="space-y-0.5 pb-6">
+                {(activeSection === 'chat' && !activeSessionId) && (
+                  <div className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[12px] bg-primary/5 text-primary font-bold border border-primary/20 mb-2 animate-pulse">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(20,184,166,0.4)]" />
+                    <span className="truncate italic">{isTemporary ? 'Temporary Chat' : 'New Chat'}</span>
+                  </div>
+                )}
                 {sessions.map(session => (
-                  <button
+                  <div
                     key={session.id}
-                    onClick={() => {
-                      onSessionSelect(session.id);
-                      onSectionChange?.('chat');
-                    }}
                     className={cn(
-                      "w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[12px] transition-all text-left truncate group",
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] transition-all text-left truncate group relative",
                       activeSessionId === session.id 
                         ? "bg-muted/80 text-foreground font-bold border border-border/50" 
                         : "text-muted-foreground hover:bg-muted/40 hover:text-foreground font-medium"
                     )}
                   >
-                    <div className={cn("h-1.5 w-1.5 rounded-full shrink-0 transition-all", activeSessionId === session.id ? "bg-primary scale-125 shadow-[0_0_8px_rgba(20,184,166,0.4)]" : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50")} />
-                    <span className="truncate">{session.title}</span>
-                  </button>
+                    <button
+                      onClick={() => {
+                        onSessionSelect(session.id);
+                        onSectionChange?.('chat');
+                      }}
+                      className="flex-1 flex items-center gap-2.5 truncate"
+                    >
+                      <div className={cn(
+                        "h-1.5 w-1.5 rounded-full shrink-0 transition-all", 
+                        activeSessionId === session.id ? "bg-primary scale-125 shadow-[0_0_8px_rgba(20,184,166,0.4)]" : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50",
+                        session.isPinned && "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]"
+                      )} />
+                      {editingSessionId === session.id ? (
+                        <input
+                          autoFocus
+                          className="bg-transparent border-none outline-none w-full p-0 text-[12px] font-bold text-foreground"
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onBlur={() => {
+                            if (editingTitle.trim() && editingTitle !== session.title) {
+                              onSessionRename(session.id, editingTitle);
+                            }
+                            setEditingSessionId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              if (editingTitle.trim() && editingTitle !== session.title) {
+                                onSessionRename(session.id, editingTitle);
+                              }
+                              setEditingSessionId(null);
+                            }
+                            if (e.key === 'Escape') setEditingSessionId(null);
+                          }}
+                        />
+                      ) : (
+                        <span className="truncate flex items-center gap-1.5">
+                          {session.title}
+                          {session.isPinned && <Pin className="h-2.5 w-2.5 text-amber-400 rotate-45" />}
+                        </span>
+                      )}
+                    </button>
+
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
+                            <MoreVertical className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => {
+                            setEditingSessionId(session.id);
+                            setEditingTitle(session.title);
+                          }} className="gap-2 text-[11px] font-bold">
+                            <Pencil className="h-3.5 w-3.5" /> Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onSessionPin(session.id, !session.isPinned)} className="gap-2 text-[11px] font-bold">
+                            {session.isPinned ? <><PinOff className="h-3.5 w-3.5" /> Unpin</> : <><Pin className="h-3.5 w-3.5" /> Pin</>}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => onSessionDelete(session.id)}
+                            className="gap-2 text-[11px] font-bold text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
                 ))}
               </div>
             </ScrollArea>

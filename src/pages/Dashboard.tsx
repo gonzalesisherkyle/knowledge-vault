@@ -3,11 +3,12 @@ import { AppShell } from '@/components/layout/AppShell';
 import { DocumentTable } from '@/features/documents/DocumentTable';
 import { DocumentUpload } from '@/features/documents/DocumentUpload';
 import { ChatWindow } from '@/features/chat/ChatWindow';
+import { Overview } from '@/features/overview/Overview';
 import { useDocuments } from '@/features/documents/useDocuments';
 import { useNotebooks } from '@/features/notebooks/useNotebooks';
 import { useChat } from '@/features/chat/useChat';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, FileText, Database, Sparkles, Binary, RefreshCcw, Info, Activity, ShieldCheck } from 'lucide-react';
+import { MessageSquare, FileText, Database, Sparkles, Binary, RefreshCcw, Info, Activity, ShieldCheck, LayoutDashboard } from 'lucide-react';
 import { healthApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -39,10 +40,14 @@ export const Dashboard: React.FC = () => {
     sendMessage,
     loadSession,
     clearChat,
+    isTemporary,
+    deleteSession,
+    renameSession,
+    togglePinSession
   } = useChat(activeNotebookId);
 
   const [isRagHealthy, setIsRagHealthy] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<'chat' | 'documents'>('chat');
+  const [activeTab, setActiveTab] = React.useState<'overview' | 'chat' | 'documents'>('overview');
   const [searchQuery, setSearchQuery] = React.useState('');
 
   React.useEffect(() => {
@@ -85,10 +90,14 @@ export const Dashboard: React.FC = () => {
       onNotebookCreate={createNotebook}
       sessions={sessions}
       activeSessionId={activeSessionId}
+      isTemporary={isTemporary}
       onSessionSelect={loadSession}
+      onSessionDelete={deleteSession}
+      onSessionRename={renameSession}
+      onSessionPin={togglePinSession}
     >
       <div className="h-full flex flex-col bg-background">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'chat' | 'documents')} className="flex-1 flex flex-col overflow-hidden">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'overview' | 'chat' | 'documents')} className="flex-1 flex flex-col overflow-hidden">
           <div className="px-4 md:px-10 py-4 bg-card/30 border-b border-border/50">
             <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-2 max-w-2xl">
@@ -120,6 +129,13 @@ export const Dashboard: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <TabsList className="bg-secondary/50 border border-border/50 p-1 rounded-xl h-9">
                   <TabsTrigger 
+                    value="overview" 
+                    className="gap-2 px-4 py-1 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all rounded-lg h-7"
+                  >
+                    <LayoutDashboard className="h-3.5 w-3.5" />
+                    Vault
+                  </TabsTrigger>
+                  <TabsTrigger 
                     value="chat" 
                     className="gap-2 px-4 py-1 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all rounded-lg h-7"
                   >
@@ -147,6 +163,16 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
+
+          <TabsContent value="overview" className="flex-1 overflow-auto m-0 focus-visible:outline-none">
+            <Overview 
+              notebook={activeNotebook}
+              documentCount={documents.length}
+              sessionCount={sessions.length}
+              onStartChat={() => setActiveTab('chat')}
+              onUploadClick={() => setActiveTab('documents')}
+            />
+          </TabsContent>
 
           <TabsContent value="chat" className="flex-1 overflow-hidden m-0 focus-visible:outline-none bg-background">
             <ChatWindow 

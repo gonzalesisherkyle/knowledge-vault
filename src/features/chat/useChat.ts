@@ -7,6 +7,7 @@ import { chatApi } from '@/lib/api';
 export function useChat(notebookId: string | null) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [isTemporary, setIsTemporary] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -65,9 +66,10 @@ export function useChat(notebookId: string | null) {
     if (!content.trim() || !notebookId) return;
 
     let currentSessionId = activeSessionId;
+    const isNowTemporary = isTemporary;
 
-    // Auto-create session if none active
-    if (!currentSessionId) {
+    // Auto-create session if none active and NOT in temporary mode
+    if (!currentSessionId && !isNowTemporary) {
       const newSession = await createNewSession();
       if (!newSession) return;
       currentSessionId = newSession.id;
@@ -140,8 +142,9 @@ export function useChat(notebookId: string | null) {
     });
   }, [notebookId, activeSessionId, createNewSession, fetchSessions, toast]);
 
-  const clearChat = useCallback(() => {
+  const clearChat = useCallback((temporary: boolean = false) => {
     setActiveSessionId(null);
+    setIsTemporary(temporary);
     setMessages([]);
     setCurrentSources([]);
     setIsTyping(false);
@@ -157,6 +160,31 @@ export function useChat(notebookId: string | null) {
     return false;
   };
 
+  const renameSession = async (id: string, title: string) => {
+    const response = await chatApi.updateSession(id, { title });
+    if (response.success && response.data) {
+      setSessions(prev => prev.map(s => s.id === id ? response.data! : s));
+      return true;
+    }
+    return false;
+  };
+
+  const togglePinSession = async (id: string, isPinned: boolean) => {
+    const response = await chatApi.updateSession(id, { isPinned });
+    if (response.success && response.data) {
+      // Re-fetch or re-sort sessions
+      setSessions(prev => {
+        const next = prev.map(s => s.id === id ? response.data! : s);
+        return [...next].sort((a, b) => {
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        });
+      });
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
     fetchSessions();
     clearChat();
@@ -167,6 +195,7 @@ export function useChat(notebookId: string | null) {
     activeSessionId,
     messages,
     isTyping,
+    isTemporary,
     isLoadingHistory,
     currentSources,
     sendMessage,
@@ -174,6 +203,8 @@ export function useChat(notebookId: string | null) {
     createNewSession,
     clearChat,
     deleteSession,
+    renameSession,
+    togglePinSession,
     refreshSessions: fetchSessions,
   };
 }

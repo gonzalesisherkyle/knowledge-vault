@@ -243,6 +243,14 @@ export const chatApi = {
       return errorResponse<{ id: string }>(error);
     }
   },
+  updateSession: async (sessionId: string, updates: { title?: string; isPinned?: boolean }): Promise<ApiResponse<ChatSession>> => {
+    try {
+      const { data } = await api.patch<ApiResponse<{ session: ChatSession }>>(`/chat/sessions/${sessionId}`, updates);
+      return { ...data, data: data.data?.session || null };
+    } catch (error) {
+      return errorResponse<ChatSession>(error);
+    }
+  },
   send: async (message: string, notebookId: string, sessionId?: string): Promise<ApiResponse<ChatMessage>> => {
     try {
       const { data } = await api.post<ApiResponse<{ answer: string; sources: ServerSource[] }>>('/chat', { 
