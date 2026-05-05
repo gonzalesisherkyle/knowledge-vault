@@ -3,7 +3,6 @@ import {
   FileText, 
   ChevronLeft,
   ChevronRight,
-  PlusCircle,
   Settings,
   Book,
   ChevronDown,
@@ -49,7 +48,6 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ 
   activeSection, 
   onSectionChange, 
-  onNewResearch,
   notebooks,
   activeNotebook,
   onNotebookSelect,

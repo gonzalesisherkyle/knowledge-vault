@@ -16,8 +16,7 @@ import {
   Shield, 
   Calendar,
   MoreHorizontal,
-  Loader2,
-  Crown
+  Loader2
 } from 'lucide-react';
 import type { GroupMember } from '@/types';
 import { format } from 'date-fns';
