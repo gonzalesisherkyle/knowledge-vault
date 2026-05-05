@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Premium Research Workspace - Light (Base) */
+    --background: 210 20% 98%;
+    --foreground: 224 71% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+    --primary: 181 84% 32%; /* Refined Teal */
+    --primary-foreground: 181 84% 98%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 14% 16%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 14% 16%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 181 84% 32%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Premium Research Workspace - Dark (Main) */
+    /* Deep Charcoal / Graphite palette */
+    --background: 222 15% 10%; /* Very deep charcoal */
+    --foreground: 210 20% 98%; /* Soft white */
+    
+    --card: 222 15% 13%; /* Slightly lighter layered surface */
+    --card-foreground: 210 20% 98%;
+    
+    --popover: 222 15% 15%; /* Even clearer layered surface for menus */
+    --popover-foreground: 210 20% 98%;
+    
+    --primary: 181 84% 45%; /* Refined Teal - energetic but calm */
+    --primary-foreground: 222 15% 5%;
+    
+    --secondary: 222 15% 18%;
+    --secondary-foreground: 210 20% 98%;
+    
+    --muted: 222 15% 18%;
+    --muted-foreground: 215 15% 65%; /* Soft readable muted text */
+    
+    --accent: 222 15% 20%;
+    --accent-foreground: 210 20% 98%;
+    
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 20% 98%;
+    
+    --border: 222 15% 20%; /* Low contrast subtle borders */
+    --input: 222 15% 20%;
+    --ring: 181 84% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground overflow-x-hidden font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Scrollbar refinement */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted/50 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted;
+}
+
+/* Typography polish */
+h1, h2, h3, h4, h5, h6 {
+  @apply tracking-tight font-semibold text-foreground;
+}
+
+p {
+  @apply leading-relaxed;
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Selection refinement */
+::selection {
+  @apply bg-primary/20 text-foreground;
+}
