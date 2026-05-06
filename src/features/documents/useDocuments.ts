@@ -54,6 +54,30 @@ export function useDocuments(notebookId: string | null) {
     }
   };
 
+  const importUrl = async (url: string) => {
+    if (!notebookId) return null;
+    try {
+      const response = await docsApi.importUrl(url, notebookId);
+      if (response.success) {
+        toast({
+          title: 'URL import started',
+          description: 'The URL has been added to your library and is being processed.',
+        });
+        fetchDocuments();
+        return response.data;
+      } else {
+        throw new Error(errorMessage(response.error, 'URL import failed'));
+      }
+    } catch (err: any) {
+      toast({
+        title: 'URL import failed',
+        description: err.message || 'An error occurred while importing the URL.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
   const deleteDocument = async (id: string) => {
     try {
       const response = await docsApi.delete(id);
@@ -99,6 +123,7 @@ export function useDocuments(notebookId: string | null) {
     error,
     refresh: fetchDocuments,
     uploadDocument,
+    importUrl,
     deleteDocument,
   };
 }

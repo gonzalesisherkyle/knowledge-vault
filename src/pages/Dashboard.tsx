@@ -27,6 +27,7 @@ export const Dashboard: React.FC = () => {
     isLoading, 
     refresh, 
     uploadDocument, 
+    importUrl,
     deleteDocument 
   } = useDocuments(activeNotebookId);
 
@@ -219,7 +220,7 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="xl:col-span-4 space-y-10">
-                  <DocumentUpload onUpload={uploadDocument} disabled={!activeNotebookId} />
+                  <DocumentUpload onUpload={uploadDocument} onImportUrl={importUrl} disabled={!activeNotebookId} />
                   
                   <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-2xl shadow-black/10">
                     <div className="p-6 border-b border-border/50 bg-background/50 flex items-center justify-between">

@@ -99,7 +99,7 @@ export function useChat(notebookId: string | null) {
       },
     ]);
 
-    await streamChat(content, notebookId, currentSessionId, {
+    await streamChat(content, notebookId, currentSessionId || undefined, {
       onStart: () => {
         setIsTyping(true);
       },
@@ -140,7 +140,7 @@ export function useChat(notebookId: string | null) {
         });
       },
     });
-  }, [notebookId, activeSessionId, createNewSession, fetchSessions, toast]);
+  }, [notebookId, activeSessionId, isTemporary, createNewSession, fetchSessions, toast]);
 
   const clearChat = useCallback((temporary: boolean = false) => {
     setActiveSessionId(null);

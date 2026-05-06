@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import { 
   Sparkles, 
   TrendingUp, 
@@ -15,7 +16,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { Notebook, ChatSession } from '@/types';
+import type { Notebook } from '@/types';
 
 interface OverviewProps {
   notebook: Notebook | null;
@@ -32,7 +33,7 @@ export const Overview: React.FC<OverviewProps> = ({
   onStartChat,
   onUploadClick
 }) => {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -42,7 +43,7 @@ export const Overview: React.FC<OverviewProps> = ({
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,

@@ -1,31 +1,42 @@
 import React, { useState, useCallback } from 'react';
-import { CloudUpload, X, FileIcon, Loader2, FilePlus2, Lock } from 'lucide-react';
+import { CloudUpload, X, FileIcon, Loader2, FilePlus2, Link2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface DocumentUploadProps {
   onUpload: (file: File) => Promise<any>;
+  onImportUrl: (url: string) => Promise<any>;
   disabled?: boolean;
 }
 
-export const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUpload, disabled }) => {
+export const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUpload, onImportUrl, disabled }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isImportingUrl, setIsImportingUrl] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [url, setUrl] = useState('');
+  const [urlError, setUrlError] = useState<string | null>(null);
   const maxUploadMb = Number(import.meta.env.VITE_MAX_UPLOAD_MB || 25);
-  const maxUploadBytes = maxUploadMb * 1024 * 1024;
 
   const selectFile = useCallback((nextFile: File) => {
     if (disabled) return;
-    if (nextFile.size > maxUploadBytes) {
+    
+    const isMedia = nextFile.type.startsWith('audio/') || 
+                    nextFile.type.startsWith('video/') || 
+                    /\.(mp3|wav|m4a|ogg|flac|mp4|mov|avi|mkv|webm)$/i.test(nextFile.name);
+    
+    const limitMb = isMedia ? 15 : maxUploadMb;
+    const limitBytes = limitMb * 1024 * 1024;
+
+    if (nextFile.size > limitBytes) {
       setFile(null);
-      setFileError(`File is larger than ${maxUploadMb}MB.`);
+      setFileError(`${isMedia ? 'Audio/Video' : 'File'} is larger than ${limitMb}MB.`);
       return;
     }
     setFileError(null);
     setFile(nextFile);
-  }, [maxUploadBytes, maxUploadMb, disabled]);
+  }, [maxUploadMb, disabled]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -59,6 +70,33 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUpload, disabl
       setFile(null);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleUrlSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (disabled || isImportingUrl) return;
+
+    let parsed: URL;
+    try {
+      parsed = new URL(url.trim());
+    } catch {
+      setUrlError('Enter a valid URL.');
+      return;
+    }
+
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      setUrlError('Only HTTP and HTTPS URLs are supported.');
+      return;
+    }
+
+    setUrlError(null);
+    setIsImportingUrl(true);
+    try {
+      const result = await onImportUrl(parsed.toString());
+      if (result) setUrl('');
+    } finally {
+      setIsImportingUrl(false);
     }
   };
 
@@ -100,7 +138,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUpload, disabl
             <div className="text-center space-y-1">
               <p className="text-sm font-bold text-foreground">Select or drag files here</p>
               <p className="text-[11px] text-muted-foreground font-medium">
-                Supported formats: PDF, DOCX, TXT, MD, CSV (Max {maxUploadMb}MB)
+                PDF, DOCX, TXT, Media (Audio/Video 15MB max)
               </p>
               {fileError && (
                 <p className="text-[11px] text-destructive font-bold pt-2">
@@ -112,7 +150,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUpload, disabl
               type="file"
               className="absolute inset-0 opacity-0 cursor-pointer"
               onChange={handleFileChange}
-              accept=".pdf,.docx,.txt,.md,.csv,.tsv,.json,.xml,.html,.htm"
+              accept=".pdf,.docx,.txt,.md,.csv,.tsv,.json,.xml,.html,.htm,audio/*,video/*"
               disabled={disabled}
             />
           </div>
@@ -172,6 +210,52 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUpload, disabl
             )}
           </Button>
         )}
+
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-border/60" />
+          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">or add URL</span>
+          <div className="h-px flex-1 bg-border/60" />
+        </div>
+
+        <form onSubmit={handleUrlSubmit} className="space-y-3">
+          <div className="relative">
+            <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="url"
+              value={url}
+              onChange={(event) => {
+                setUrl(event.target.value);
+                if (urlError) setUrlError(null);
+              }}
+              placeholder="https://example.com/research"
+              disabled={disabled || isImportingUrl}
+              className="h-11 w-full rounded-xl border border-border/60 bg-secondary/20 pl-10 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground/50 focus:border-primary/40 focus:bg-secondary/30 disabled:cursor-not-allowed"
+            />
+          </div>
+          {urlError && (
+            <p className="text-[11px] text-destructive font-bold">
+              {urlError}
+            </p>
+          )}
+          <Button
+            type="submit"
+            variant="outline"
+            className="w-full h-10 gap-2 text-xs font-bold border-border/60 bg-background/60 hover:bg-secondary/50"
+            disabled={disabled || isImportingUrl || !url.trim()}
+          >
+            {isImportingUrl ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Importing URL...
+              </>
+            ) : (
+              <>
+                <Link2 className="h-4 w-4" />
+                Import URL
+              </>
+            )}
+          </Button>
+        </form>
       </div>
     </div>
   );

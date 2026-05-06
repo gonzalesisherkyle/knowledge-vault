@@ -5,6 +5,8 @@ export interface Document {
   notebookId: string | null;
   filename: string;
   fileType: string;
+  sourceType?: 'file' | 'url';
+  sourceUrl?: string | null;
   status: DocumentStatus;
   totalChunks: number;
   createdAt: string;

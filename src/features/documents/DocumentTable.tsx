@@ -20,6 +20,7 @@ import {
   FileText,
   FileCode,
   FileJson,
+  Link2,
   Binary,
   Database
 } from 'lucide-react';
@@ -78,7 +79,8 @@ const StatusBadge: React.FC<{ status: DocumentStatus }> = ({ status }) => {
   }
 };
 
-const FileTypeIcon: React.FC<{ type: string }> = ({ type }) => {
+const FileTypeIcon: React.FC<{ type: string; sourceType?: Document['sourceType'] }> = ({ type, sourceType }) => {
+  if (sourceType === 'url') return <Link2 className="h-4 w-4 text-primary/80" />;
   const t = type.toLowerCase();
   if (t.includes('pdf')) return <FileText className="h-4 w-4 text-primary/80" />;
   if (t.includes('json')) return <FileJson className="h-4 w-4 text-muted-foreground" />;
@@ -118,7 +120,7 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({ documents, isLoadi
         </div>
         <h3 className="text-lg font-bold tracking-tight text-foreground/80">Library is empty</h3>
         <p className="text-muted-foreground text-sm max-w-[300px] text-center mt-2 leading-relaxed font-medium">
-          Upload research documents or notes to start building this workspace's knowledge graph.
+          Upload research documents, notes, or URLs to start building this workspace's knowledge graph.
         </p>
       </div>
     );
@@ -142,11 +144,13 @@ export const DocumentTable: React.FC<DocumentTableProps> = ({ documents, isLoadi
               <TableCell>
                 <div className="flex items-center gap-4">
                   <div className="h-10 w-10 rounded-lg border border-border/50 bg-background flex items-center justify-center shrink-0 group-hover:border-primary/40 group-hover:bg-primary/5 transition-all">
-                    <FileTypeIcon type={doc.fileType} />
+                    <FileTypeIcon type={doc.fileType} sourceType={doc.sourceType} />
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-[13px] font-bold text-foreground truncate max-w-[320px]">{doc.filename}</span>
-                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">{doc.fileType}</span>
+                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">
+                      {doc.sourceType === 'url' ? doc.sourceUrl || 'URL' : doc.fileType}
+                    </span>
                   </div>
                 </div>
               </TableCell>

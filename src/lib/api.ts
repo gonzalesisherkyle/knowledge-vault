@@ -8,6 +8,8 @@ type ServerDocument = {
   notebookId?: string | null;
   originalName: string;
   mimeType: string;
+  sourceType?: 'file' | 'url';
+  sourceUrl?: string | null;
   status: Document['status'];
   chunkCount: number;
   createdAt: string;
@@ -81,6 +83,8 @@ export const mapDocument = (document: ServerDocument): Document => ({
   notebookId: document.notebookId || null,
   filename: document.originalName,
   fileType: document.mimeType,
+  sourceType: document.sourceType || 'file',
+  sourceUrl: document.sourceUrl || null,
   status: document.status,
   totalChunks: document.chunkCount,
   createdAt: document.createdAt,
@@ -159,6 +163,17 @@ export const docsApi = {
           },
         }
       );
+      return { ...data, data: data.data ? mapDocument(data.data.document) : null };
+    } catch (error) {
+      return errorResponse<Document>(error);
+    }
+  },
+  importUrl: async (url: string, notebookId: string): Promise<ApiResponse<Document>> => {
+    try {
+      const { data } = await api.post<ApiResponse<{ document: ServerDocument }>>('/docs/url', {
+        url,
+        notebookId,
+      });
       return { ...data, data: data.data ? mapDocument(data.data.document) : null };
     } catch (error) {
       return errorResponse<Document>(error);
