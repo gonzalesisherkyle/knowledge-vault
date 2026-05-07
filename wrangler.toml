@@ -4,6 +4,6 @@ pages_build_output_dir = "./dist"
 
 [vars]
 # Replace this with your actual production API URL
-VITE_API_BASE_URL = "https://p01--knowledge-vault-backend--bqm4k86y76sk.code.run/api"
+VITE_API_BASE_URL = "https://knowledge-vault-api.isher.dev/api"
 VITE_API_WITH_CREDENTIALS = "false"
 VITE_MAX_UPLOAD_MB = "15"
