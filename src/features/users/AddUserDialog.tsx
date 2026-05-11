@@ -35,14 +35,17 @@ interface AddUserDialogProps {
 export const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange, onSubmit }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('Welcome123!'); 
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState('researcher');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim() || !email.trim() || password.length < 8) {
+      setError('Name, email, and an initial password of at least 8 characters are required.');
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -53,6 +56,7 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange
         onOpenChange(false);
         setName('');
         setEmail('');
+        setPassword('');
         setRole('researcher');
       } else {
         setError(result.error?.message || 'Failed to create user');
@@ -125,9 +129,10 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
                 <Input
                   id="password"
-                  type="text"
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 8 characters"
                   className="pl-11 h-11 bg-secondary/20 border-border/50 focus:ring-primary/20 font-medium"
                   required
                 />
@@ -163,7 +168,7 @@ export const AddUserDialog: React.FC<AddUserDialogProps> = ({ open, onOpenChange
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || !name.trim() || !email.trim()} 
+              disabled={isSubmitting || !name.trim() || !email.trim() || password.length < 8} 
               className="px-6 font-bold text-xs uppercase tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20"
             >
               {isSubmitting ? (

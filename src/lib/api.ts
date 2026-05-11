@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { ApiResponse, Document, Chunk, ChatMessage, HealthStatus, Notebook, ChatSession, User, Group, GroupMember } from '@/types';
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
+export const API_WITH_CREDENTIALS = true;
 
 type ServerDocument = {
   id: string;
@@ -36,16 +37,13 @@ type ServerChatMessage = {
 };
 
 export const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem('knowledgeVaultToken') || localStorage.getItem('authToken');
-  if (token) return { Authorization: `Bearer ${token}` };
-
   const devUserId = import.meta.env.VITE_DEV_USER_ID;
-  return devUserId ? { 'x-user-id': devUserId } : {};
+  return import.meta.env.DEV && devUserId ? { 'x-user-id': devUserId } : {};
 };
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: import.meta.env.VITE_API_WITH_CREDENTIALS === 'true',
+  withCredentials: API_WITH_CREDENTIALS,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -77,6 +75,8 @@ const errorResponse = <T>(error: any): ApiResponse<T> => {
 
 export const errorMessage = (error: ApiResponse<unknown>['error'], fallback: string) =>
   error?.message || fallback;
+
+const getClientTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
 export const mapDocument = (document: ServerDocument): Document => ({
   id: document.id,
@@ -157,7 +157,7 @@ export const docsApi = {
         `${API_BASE_URL}/docs/upload`,
         formData,
         {
-          withCredentials: import.meta.env.VITE_API_WITH_CREDENTIALS === 'true',
+          withCredentials: API_WITH_CREDENTIALS,
           headers: {
             ...getAuthHeaders(),
           },
@@ -312,7 +312,7 @@ export const usersApi = {
       return errorResponse<User[]>(error);
     }
   },
-  create: async (userData: { name: string; email: string; role: string }): Promise<ApiResponse<User>> => {
+  create: async (userData: { name: string; email: string; role: string; password: string }): Promise<ApiResponse<User>> => {
     try {
       const { data } = await api.post<ApiResponse<User>>('/users', userData);
       return data;
@@ -330,21 +330,60 @@ export const usersApi = {
   },
 };
 
+export type AuthUserPayload = { user: User };
+export type RegisterPayload = AuthUserPayload & {
+  requiresEmailVerification?: boolean;
+  verification?: {
+    email: string;
+    expiresAt: string | null;
+  };
+};
+
 export const authApi = {
-  register: async (userData: any): Promise<ApiResponse<{ user: User; token: string }>> => {
+  register: async (userData: any): Promise<ApiResponse<RegisterPayload>> => {
     try {
-      const { data } = await api.post<ApiResponse<{ user: User; token: string }>>('/auth/register', userData);
+      const { data } = await api.post<ApiResponse<RegisterPayload>>('/auth/register', {
+        ...userData,
+        timeZone: userData.timeZone || getClientTimeZone(),
+      });
       return data;
     } catch (error) {
-      return errorResponse<{ user: User; token: string }>(error);
+      return errorResponse<RegisterPayload>(error);
     }
   },
-  login: async (credentials: any): Promise<ApiResponse<{ user: User; token: string }>> => {
+  login: async (credentials: any): Promise<ApiResponse<AuthUserPayload>> => {
     try {
-      const { data } = await api.post<ApiResponse<{ user: User; token: string }>>('/auth/login', credentials);
+      const { data } = await api.post<ApiResponse<AuthUserPayload>>('/auth/login', credentials);
       return data;
     } catch (error) {
-      return errorResponse<{ user: User; token: string }>(error);
+      return errorResponse<AuthUserPayload>(error);
+    }
+  },
+  verifyEmail: async (payload: { email: string; code: string }): Promise<ApiResponse<AuthUserPayload>> => {
+    try {
+      const { data } = await api.post<ApiResponse<AuthUserPayload>>('/auth/verify-email', payload);
+      return data;
+    } catch (error) {
+      return errorResponse<AuthUserPayload>(error);
+    }
+  },
+  resendVerification: async (email: string): Promise<ApiResponse<{ message: string }>> => {
+    try {
+      const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/resend-verification', {
+        email,
+        timeZone: getClientTimeZone(),
+      });
+      return data;
+    } catch (error) {
+      return errorResponse<{ message: string }>(error);
+    }
+  },
+  logout: async (): Promise<ApiResponse<{ message: string }>> => {
+    try {
+      const { data } = await api.post<ApiResponse<{ message: string }>>('/auth/logout');
+      return data;
+    } catch (error) {
+      return errorResponse<{ message: string }>(error);
     }
   },
   me: async (): Promise<ApiResponse<{ user: User }>> => {

@@ -58,6 +58,7 @@ export interface User {
   role: UserRole;
   groupId?: string;
   status: UserStatus;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }

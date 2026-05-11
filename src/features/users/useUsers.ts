@@ -26,7 +26,7 @@ export const useUsers = () => {
     }
   }, []);
 
-  const createUser = async (userData: { name: string; email: string; role: string }) => {
+  const createUser = async (userData: { name: string; email: string; role: string; password: string }) => {
     try {
       const response = await usersApi.create(userData);
       if (response.success && response.data) {
