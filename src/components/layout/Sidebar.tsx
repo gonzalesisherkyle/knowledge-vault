@@ -235,7 +235,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <div
                         key={session.id}
                         className={cn(
-                          "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] transition-all text-left truncate group relative",
+                          "w-full grid grid-cols-[minmax(0,1fr)_1.5rem] items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] transition-all text-left group relative min-w-0",
                           activeSessionId === session.id 
                             ? "bg-amber-500/10 text-amber-200 font-bold border border-amber-500/20" 
                             : "text-muted-foreground hover:bg-amber-500/5 hover:text-amber-100 font-medium"
@@ -246,21 +246,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             onSessionSelect(session.id);
                             onSectionChange?.('chat');
                           }}
-                          className="flex-1 flex items-center gap-2.5 truncate"
+                          className="min-w-0 flex items-center gap-2.5"
                         >
                           <div className={cn(
                             "h-1.5 w-1.5 rounded-full shrink-0 transition-all bg-amber-400", 
                             activeSessionId === session.id ? "scale-125 shadow-[0_0_8px_rgba(251,191,36,0.6)]" : "opacity-60"
                           )} />
-                          <span className="truncate font-bold tracking-tight">
+                          <span className="block min-w-0 truncate font-bold tracking-tight">
                             {session.title}
                           </span>
                         </button>
 
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="w-6 shrink-0">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
+                              <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-amber-200/80 hover:text-amber-100">
                                 <MoreVertical className="h-3.5 w-3.5" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -300,7 +300,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <div
                       key={session.id}
                       className={cn(
-                        "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] transition-all text-left truncate group relative",
+                        "w-full grid grid-cols-[minmax(0,1fr)_1.5rem] items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] transition-all text-left group relative min-w-0",
                         activeSessionId === session.id 
                           ? "bg-muted/80 text-foreground font-bold border border-border/50" 
                           : "text-muted-foreground hover:bg-muted/40 hover:text-foreground font-medium"
@@ -311,21 +311,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           onSessionSelect(session.id);
                           onSectionChange?.('chat');
                         }}
-                        className="flex-1 flex items-center gap-2.5 truncate"
+                        className="min-w-0 flex items-center gap-2.5"
                       >
                         <div className={cn(
                           "h-1.5 w-1.5 rounded-full shrink-0 transition-all", 
                           activeSessionId === session.id ? "bg-primary scale-125 shadow-[0_0_8px_rgba(20,184,166,0.4)]" : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50"
                         )} />
-                        <span className="truncate">
+                        <span className="block min-w-0 truncate">
                           {session.title}
                         </span>
                       </button>
 
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="w-6 shrink-0">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 text-muted-foreground/80 hover:text-foreground">
                               <MoreVertical className="h-3.5 w-3.5" />
                             </Button>
                           </DropdownMenuTrigger>
